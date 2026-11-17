@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="dark light">
+<title>BIOL 40C Lab Exam Prep</title>
+<link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body>
+<header class="top">
+  <div class="brand">BIOL 40C · LAB EXAM PREP</div>
+  <div class="meta" id="meta"></div>
+</header>
+<div class="banner">Unofficial student study aid — questions are original, written from the lab handouts. Not instructor material.</div>
+
+<main id="app">
+  <!-- START -->
+  <section id="v-start" class="view">
+    <h1>Lab practice exam</h1>
+    <p class="lede">Six choices per question — one correct, five distractors. You see the answer after every question. At the end you can re-take just the ones you missed, round after round, until none are left. You also get a breakdown of your weak areas.</p>
+    <div class="card">
+      <div class="label">Topics</div>
+      <div id="topic-list" class="topics"></div>
+      <div class="row">
+        <button class="ghost small" id="all-on">All</button>
+        <button class="ghost small" id="all-off">None</button>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Length</div>
+      <div class="seg" id="len">
+        <button data-n="25">25</button><button data-n="50">50</button><button data-n="0" class="on">All</button>
+      </div>
+      <div class="hint" id="count-hint"></div>
+    </div>
+    <button class="primary" id="start">Start exam</button>
+    <div id="resume-box"></div>
+  </section>
+
+  <!-- QUESTION -->
+  <section id="v-q" class="view" hidden>
+    <div class="progress"><div class="bar" id="bar"></div></div>
+    <div class="qhead"><span id="qnum"></span><span id="qtopic" class="tag"></span></div>
+    <h2 id="qtext" class="qtext"></h2>
+    <ol id="choices" class="choices" type="A"></ol>
+    <div id="feedback" class="feedback" hidden></div>
+    <div class="actions">
+      <button class="ghost" id="quit">End early</button>
+      <button class="primary" id="next" hidden>Next</button>
+    </div>
+  </section>
+
+  <!-- RESULTS -->
+  <section id="v-res" class="view" hidden>
+    <h1 id="res-title"></h1>
+    <div class="score" id="res-score"></div>
+    <p id="res-line" class="lede"></p>
+    <div class="actions stack">
+      <button class="primary" id="retake" hidden></button>
+      <button class="ghost" id="restart">New full exam</button>
+    </div>
+    <h2 class="sec">Weak areas</h2>
+    <p class="hint">Scored on your <b>first try</b> at each question this exam. Retake rounds don't change these numbers — they tell you where the gaps are.</p>
+    <div id="weak"></div>
+    <h2 class="sec" id="missed-h">Missed this round</h2>
+    <div id="missed"></div>
+  </section>
+</main>
+<script src="questions.js?v=1"></script>
+<script src="app.js?v=1"></script>
+</body>
+</html>
