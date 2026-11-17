@@ -77,3 +77,16 @@ button.small{padding:6px 12px;font-size:13px}
 .miss .q{font-weight:600}
 .miss .a{color:var(--ok);font-size:14px;margin-top:4px}
 .miss .y{color:var(--bad);font-size:14px}
+
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{padding:8px 12px;font-size:14px;border-radius:999px}
+.chips button.on{background:var(--accent);color:var(--bg);border-color:var(--accent)}
+.chips .n{opacity:.6;margin-left:6px;font-variant-numeric:tabular-nums}
+.label .sub{text-transform:none;letter-spacing:0}
+.labhead{display:flex;align-items:center;gap:10px;padding:10px 4px 4px;font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--dim);font-family:ui-monospace,Menlo,monospace;cursor:pointer;border-top:1px solid var(--line);margin-top:6px}
+.labhead:first-child{border-top:0;margin-top:0}
+.labhead input{width:16px;height:16px;accent-color:var(--accent)}
+.topics label.t{padding-left:18px}
+.bylab{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:14px;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px 14px}
+.bylab .p{font-variant-numeric:tabular-nums;font-weight:600}
+.bylab .p.bad{color:var(--bad)} .bylab .p.mid{color:var(--warn)} .bylab .p.ok{color:var(--ok)}

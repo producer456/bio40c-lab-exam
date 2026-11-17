@@ -37,17 +37,49 @@
   selTopics = selTopics.filter(function (t) { return topicNames.indexOf(t) >= 0; });
   var lenN = load('len', 0);
 
+  var LABS = (window.LABS || []).map(function (l) {
+    return { name: l.name, short: l.short || l.name, topics: l.topics.filter(function (t) { return topicNames.indexOf(t) >= 0; }) };
+  }).filter(function (l) { return l.topics.length; });
+  // any topic not assigned to a lab still gets shown
+  var orphan = topicNames.filter(function (t) { return !LABS.some(function (l) { return l.topics.indexOf(t) >= 0; }); });
+  if (orphan.length) LABS.push({ name: 'Other', short: 'Other', topics: orphan });
+  function labOf(t) { for (var i = 0; i < LABS.length; i++) if (LABS[i].topics.indexOf(t) >= 0) return LABS[i]; return null; }
+  function countIn(ts) { return QS.filter(function (q) { return ts.indexOf(q.topic) >= 0; }).length; }
+  function sameSet(a, b) { return a.length === b.length && a.every(function (x) { return b.indexOf(x) >= 0; }); }
+  function setTopics(ts) { selTopics = topicNames.filter(function (t) { return ts.indexOf(t) >= 0; }); save('topics', selTopics); renderStart(); }
+
   function renderStart() {
+    // lab chips
+    var chips = $('lab-chips'); chips.textContent = '';
+    function chip(label, n, ts) {
+      var b = el('button', sameSet(selTopics, ts) ? 'on' : null, label);
+      b.appendChild(el('span', 'n', n));
+      b.addEventListener('click', function () { setTopics(ts); });
+      chips.appendChild(b);
+    }
+    chip('All labs', QS.length, topicNames);
+    LABS.forEach(function (l) { chip(l.short, countIn(l.topics), l.topics); });
+
+    // topics grouped by lab
     var list = $('topic-list'); list.textContent = '';
-    topicNames.forEach(function (t) {
-      var n = QS.filter(function (q) { return q.topic === t; }).length;
-      var lab = el('label'); var cb = el('input'); cb.type = 'checkbox'; cb.checked = selTopics.indexOf(t) >= 0;
-      cb.addEventListener('change', function () {
-        selTopics = topicNames.filter(function (x, i) { return list.querySelectorAll('input')[i].checked; });
-        save('topics', selTopics); hint();
+    LABS.forEach(function (l) {
+      var on = l.topics.filter(function (t) { return selTopics.indexOf(t) >= 0; }).length;
+      var h = el('label', 'labhead'), hc = el('input'); hc.type = 'checkbox';
+      hc.checked = on === l.topics.length; hc.indeterminate = on > 0 && on < l.topics.length;
+      hc.addEventListener('change', function () {
+        var next = selTopics.filter(function (t) { return l.topics.indexOf(t) < 0; });
+        if (hc.checked) next = next.concat(l.topics);
+        setTopics(next);
       });
-      lab.appendChild(cb); lab.appendChild(el('span', null, t)); lab.appendChild(el('span', 'n', n));
-      list.appendChild(lab);
+      h.appendChild(hc); h.appendChild(el('span', null, l.name)); list.appendChild(h);
+      l.topics.forEach(function (t) {
+        var lab = el('label', 't'), cb = el('input'); cb.type = 'checkbox'; cb.checked = selTopics.indexOf(t) >= 0;
+        cb.addEventListener('change', function () {
+          setTopics(cb.checked ? selTopics.concat([t]) : selTopics.filter(function (x) { return x !== t; }));
+        });
+        lab.appendChild(cb); lab.appendChild(el('span', null, t)); lab.appendChild(el('span', 'n', countIn([t])));
+        list.appendChild(lab);
+      });
     });
     Array.prototype.forEach.call($('len').children, function (b) { b.classList.toggle('on', +b.dataset.n === lenN); });
     hint();
@@ -60,20 +92,26 @@
       rb.appendChild(b);
     }
   }
+  function selLabel() {
+    if (sameSet(selTopics, topicNames)) return 'All labs';
+    var whole = LABS.filter(function (l) { return sameSet(selTopics, l.topics); });
+    if (whole.length) return whole[0].name;
+    return selTopics.length + ' topic' + (selTopics.length === 1 ? '' : 's');
+  }
   function pool() { return QS.filter(function (q) { return selTopics.indexOf(q.topic) >= 0; }); }
   function hint() {
     var n = pool().length, take = lenN && lenN < n ? lenN : n;
-    $('count-hint').textContent = n ? take + ' questions from ' + selTopics.length + ' topic' + (selTopics.length === 1 ? '' : 's') : 'Pick at least one topic.';
+    $('count-hint').textContent = n ? take + ' questions · ' + selLabel() : 'Pick at least one topic.';
     $('start').disabled = !n;
   }
-  $('all-on').addEventListener('click', function () { selTopics = topicNames.slice(); save('topics', selTopics); renderStart(); });
-  $('all-off').addEventListener('click', function () { selTopics = []; save('topics', selTopics); renderStart(); });
+  $('all-on').addEventListener('click', function () { setTopics(topicNames); });
+  $('all-off').addEventListener('click', function () { setTopics([]); });
   $('len').addEventListener('click', function (e) {
     if (!e.target.dataset.n) return; lenN = +e.target.dataset.n; save('len', lenN); renderStart();
   });
   $('start').addEventListener('click', function () {
     var p = shuffle(pool()); if (lenN && lenN < p.length) p = p.slice(0, lenN);
-    S = { round: 1, queue: p.map(function (q) { return q.id; }), i: 0, first: {}, missed: [], total: p.length };
+    S = { round: 1, queue: p.map(function (q) { return q.id; }), i: 0, first: {}, missed: [], total: p.length, label: selLabel() };
     save('state', S); showQ();
   });
 
@@ -83,10 +121,10 @@
     var id = S.queue[S.i], q = byId[id];
     cur = { q: q, opts: shuffle([q.a].concat(q.d)), locked: false };
     $('qnum').textContent = (S.round > 1 ? 'RETAKE ' + (S.round - 1) + ' · ' : '') + 'Q ' + (S.i + 1) + ' / ' + S.queue.length;
-    $('qtopic').textContent = q.topic;
+    var lb = labOf(q.topic); $('qtopic').textContent = (lb ? lb.short + ' · ' : '') + q.topic;
     $('qtext').textContent = q.q;
     $('bar').style.width = (100 * S.i / S.queue.length) + '%';
-    $('meta').textContent = S.round > 1 ? 'retake round ' + (S.round - 1) : 'first pass';
+    $('meta').textContent = (S.label ? S.label + ' · ' : '') + (S.round > 1 ? 'retake round ' + (S.round - 1) : 'first pass');
     var ol = $('choices'); ol.textContent = '';
     cur.opts.forEach(function (o, k) {
       var li = el('li'), b = el('button', null, o);
@@ -147,7 +185,7 @@
     rt.hidden = !missed.length;
     rt.textContent = 'Retake the ' + missed.length + ' missed question' + (missed.length === 1 ? '' : 's');
     rt.onclick = function () {
-      S = { round: S.round + 1, queue: shuffle(missed), i: 0, first: S.first, missed: [], total: S.total };
+      S = { round: S.round + 1, queue: shuffle(missed), i: 0, first: S.first, missed: [], total: S.total, label: S.label };
       save('state', S); showQ();
     };
     if (!missed.length) drop('state'); else save('state', S);
@@ -161,6 +199,22 @@
     });
     var rows = Object.keys(stat).map(function (t) { var s = stat[t]; s.t = t; s.p = s.ok / s.n; return s; })
       .sort(function (a, b) { return a.p - b.p || b.n - a.n; });
+    var bl = $('bylab'); bl.textContent = '';
+    var labRows = LABS.map(function (l) {
+      var n = 0, ok = 0;
+      l.topics.forEach(function (t) { if (stat[t]) { n += stat[t].n; ok += stat[t].ok; } });
+      return { l: l, n: n, ok: ok, p: n ? ok / n : 1 };
+    }).filter(function (r) { return r.n; }).sort(function (a, b) { return a.p - b.p; });
+    if (labRows.length) {
+      var g = el('div', 'bylab');
+      labRows.forEach(function (r) {
+        var pct = Math.round(100 * r.p);
+        g.appendChild(el('span', null, r.l.name));
+        g.appendChild(el('span', 'p ' + (pct < 70 ? 'bad' : pct < 85 ? 'mid' : 'ok'), pct + '%  (' + r.ok + '/' + r.n + ')'));
+      });
+      bl.appendChild(g);
+    }
+    $('bylab').previousElementSibling.hidden = labRows.length < 2; bl.hidden = labRows.length < 2;
     var w = $('weak'); w.textContent = '';
     if (!rows.length) w.appendChild(el('p', 'hint', 'Answer some questions first.'));
     rows.forEach(function (s) {

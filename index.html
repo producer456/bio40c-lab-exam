@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="color-scheme" content="dark light">
 <title>BIOL 40C Lab Exam Prep</title>
-<link rel="stylesheet" href="styles.css?v=1">
+<link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
 <header class="top">
@@ -20,7 +20,12 @@
     <h1>Lab practice exam</h1>
     <p class="lede">Six choices per question — one correct, five distractors. You see the answer after every question. At the end you can re-take just the ones you missed, round after round, until none are left. You also get a breakdown of your weak areas.</p>
     <div class="card">
-      <div class="label">Topics</div>
+      <div class="label">Lab</div>
+      <div id="lab-chips" class="chips"></div>
+      <div class="hint">Pick one lab to drill just that question bank, or All labs for the whole exam.</div>
+    </div>
+    <div class="card">
+      <div class="label">Topics <span class="sub">— fine-tune within the lab(s)</span></div>
       <div id="topic-list" class="topics"></div>
       <div class="row">
         <button class="ghost small" id="all-on">All</button>
@@ -58,16 +63,19 @@
     <p id="res-line" class="lede"></p>
     <div class="actions stack">
       <button class="primary" id="retake" hidden></button>
-      <button class="ghost" id="restart">New full exam</button>
+      <button class="ghost" id="restart">New exam (back to start)</button>
     </div>
-    <h2 class="sec">Weak areas</h2>
+    <h2 class="sec">By lab</h2>
+    <div id="bylab"></div>
+    <h2 class="sec">Weak areas (by topic)</h2>
     <p class="hint">Scored on your <b>first try</b> at each question this exam. Retake rounds don't change these numbers — they tell you where the gaps are.</p>
     <div id="weak"></div>
     <h2 class="sec" id="missed-h">Missed this round</h2>
     <div id="missed"></div>
   </section>
 </main>
-<script src="questions.js?v=1"></script>
-<script src="app.js?v=1"></script>
+<script src="labs.js?v=2"></script>
+<script src="questions.js?v=2"></script>
+<script src="app.js?v=2"></script>
 </body>
 </html>
